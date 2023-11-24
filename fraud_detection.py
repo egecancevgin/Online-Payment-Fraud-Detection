@@ -8,10 +8,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import precision_score, recall_score, f1_score
 import pandas as pd
 
-# Load the data
 df = pd.read_csv('online_payments.csv')
-
-# Drop rows with NaN values in the target variable
 df.dropna(subset=['isFraud'], inplace=True)
 
 # Separate majority and minority classes
@@ -37,20 +34,19 @@ df_resampled = pd.concat([df_majority_downsampled, df_minority_upsampled])
 cat_features = ['type']
 num_features = ['step', 'amount', 'oldbalanceOrg', 'newbalanceOrig', 'oldbalanceDest', 'newbalanceDest']
 
-# Define the preprocessing steps
+# Do preprocessing at its best
 preprocessor = ColumnTransformer(
     transformers=[
         ('num', StandardScaler(), num_features),
         ('cat', OneHotEncoder(), cat_features),
         ('imputer', SimpleImputer(strategy='mean'), num_features)])
 
-# Define the pipeline
+# Build the pipeline
 rf_pipeline = Pipeline(steps=[
     ('preprocessor', preprocessor),
     ('classifier', RandomForestClassifier())
 ])
 
-# Define the hyperparameters to tune
 param_grid = {
     'classifier__n_estimators': [100, 200, 300],
     'classifier__max_features': ['sqrt', 'log2'],
@@ -73,7 +69,7 @@ grid_search.fit(X_train, y_train)
 print("Best parameters:", grid_search.best_params_)
 print("Mean accuracy:", grid_search.best_score_)
 
-# Evaluate the model on the test set
+# Evaluate the model on the test set, be careful with the data leakage!!!
 y_pred = grid_search.predict(X_test)
 test_accuracy = grid_search.score(X_test, y_test)
 test_precision = precision_score(y_test, y_pred)
